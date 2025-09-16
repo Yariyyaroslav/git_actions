@@ -19,7 +19,9 @@ jobs:
         run: npm run build
 
       - name: Archive build
-        run: tar - czf build.tar.gz build
+        run: |
+          mkdir -p .temp
+          tar -czf .temp/project-build.tar.gz build
 
       - name: Upload archive via SCP
         uses: appleboy/scp-action@v0.1.7
@@ -27,7 +29,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
-          source: build.tar.gz
+          source: .temp/project-build.tar.gz
           target: ~/htdocs/yariy-yaroslav.swit.vn.ua
           strip_components: 1
 
@@ -39,4 +41,7 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           script: |
             cd htdocs/yariy-yaroslav.swit.vn.ua
-            tar -xzf build.tar.gz
+            tar -xzf project-build.tar.gz
+            rm -rf project-build.tar.gz
+            mv build/* ./
+            rm -rf build
