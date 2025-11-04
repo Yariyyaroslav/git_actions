@@ -1,47 +1,48 @@
-name: Build And Upload
+name: Build And Upload   # Назва GitHub Action — збірка та завантаження проєкту
 
 on:
   push:
     branches:
-      - main
+      - main              # Запускати дію при кожному пуші у гілку main
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Виконання на останній версії Ubuntu
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3   # Клонування репозиторію в середовище CI
 
       - name: Install dependencies
-        run: npm install
+        run: npm install            # Встановлення залежностей із package.json
 
       - name: Build project
-        run: npm run build
+        run: npm run build          # Збірка проєкту (наприклад, створення production-версії)
 
       - name: Archive build
-        run: |
+        run: |                      # Архівування папки build у тимчасовий .tar.gz-файл
           mkdir -p .temp
           tar -czf .temp/project-build.tar.gz build
 
       - name: Upload archive via SCP
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v0.1.7   # Завантаження архіву на сервер через SCP
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-          source: .temp/project-build.tar.gz
-          target: ~/htdocs/yariy-yaroslav.swit.vn.ua
-          strip_components: 1
+          host: ${{ secrets.HOST }}        # Адреса сервера (зберігається у Secrets)
+          username: ${{ secrets.USERNAME }} # Логін користувача
+          password: ${{ secrets.PASSWORD }} # Пароль (також у Secrets)
+          source: .temp/project-build.tar.gz  # Файл, який завантажуємо
+          target: ~/htdocs/yariy-yaroslav.swit.vn.ua  # Папка на сервері
+          strip_components: 1             # Вилучає перший рівень директорій при копіюванні
 
       - name: Extract archive
-        uses: appleboy/ssh-action@v0.1.3
+        uses: appleboy/ssh-action@v0.1.3   # Підключення до сервера через SSH
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
-          script: |
-            cd htdocs/yariy-yaroslav.swit.vn.ua
-            tar -xzf project-build.tar.gz
-            rm -rf project-build.tar.gz
-            mv build/* ./
-            rm -rf build
+          script: |                        # Команди, що виконуються на сервері:
+            cd htdocs/yariy-yaroslav.swit.vn.ua    
+            tar -xzf project-build.tar.gz          
+            rm -rf project-build.tar.gz            
+            mv build/* ./                          
+            rm -rf build                          
